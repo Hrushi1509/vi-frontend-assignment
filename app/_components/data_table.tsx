@@ -16,6 +16,9 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 import { DataTablePagination } from "./data-table-pagination";
+import React, { useState } from "react";
+
+
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -29,6 +32,13 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
     });
+
+    const [selectedRow, setSelectedRow] = useState(null); 
+
+    const handleRowSelect = (rowId : any) => {
+        setSelectedRow(rowId); 
+        console.log('rowid:', rowId)
+    };
 
     // TASK : Make first 2 columns (i.e. checkbox and task id) sticky
     // TASK : Make header columns resizable
@@ -46,30 +56,60 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
-                                                      header.column.columnDef.header,
-                                                      header.getContext(),
-                                                  )}
+                                                    header.column.columnDef.header,
+                                                    header.getContext(),
+                                                )}
                                         </TableHead>
                                     );
                                 })}
                             </TableRow>
                         ))}
                     </TableHeader>
-                    <TableBody>
+                    <TableBody >
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
+                                    className={row.id === selectedRow ? "bg-green-300" : ""}
+                                    // data-state={row.getIsSelected() && "selected"}
+                                    onClick={() => handleRowSelect(row.id)}
+                                    
                                 >
-                                    {row.getVisibleCells().map((cell) => (
+                                    {/* {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext(),
                                             )}
                                         </TableCell>
-                                    ))}
+                                    ))} */}
+
+                                    {row.getVisibleCells().map((cell, index) => {
+                                        if (index === 0) { 
+                                            return (
+                                                <React.Fragment key={cell.id} >
+                                                    <TableCell   style={{ position: index === 0 || index === 1 ? "sticky" : "static", left: 0 }}>
+                                                        <input type="checkbox" checked={row.id === selectedRow} readOnly />
+                                                    </TableCell>
+                                                    <TableCell   style={{ position: index === 0 || index === 1 ? "sticky" : "static", left: 0 }}>
+                                                        {flexRender(
+                                                            cell.column.columnDef.cell,
+                                                            cell.getContext(),
+                                                        )}
+                                                    </TableCell>
+                                                </React.Fragment>
+                                            );
+                                        } else {
+                                            return (
+                                                <TableCell key={cell.id}>
+                                                    {flexRender(
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext(),
+                                                    )}
+                                                </TableCell>
+                                            );
+                                        }
+                                    })}
                                 </TableRow>
                             ))
                         ) : (
